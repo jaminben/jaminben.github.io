@@ -1,9 +1,8 @@
-
 <!doctype html>
 <html>
 <head>
 <style>
-select#bizz {
+select.bizz {
 
   margin-bottom:5px !important;
   width: 226px !important;
@@ -50,22 +49,47 @@ var callback = function() {
   if(!ranOnce){
     ranOnce = true;
 
-    var parent = $("#habla_name_input").parent();
-    var hasSetField = false;
+    var addSelectBox = function(divName, buttonName, id){
+      var parent = $(divName).parent();
+      var hasSetField = false;
 
-    parent.before("<div class='hbl_txt_wrapper'><select id='bizz' class='habla_wcsend_field habla_wcsend_input_pre habla_wcsend_input_normal hbl_pal_input_pre_fg hbl_pal_main_font_family hbl_pal_input_font_size hbl_pal_control_border'><option selected=selected>Select a Business Type</option><option>Sales</option><option>Support</option></select></div>");
+      parent.before("<div class='hbl_txt_wrapper'><select id='"+ id + "' class='bizz habla_wcsend_field habla_wcsend_input_pre habla_wcsend_input_normal hbl_pal_input_pre_fg hbl_pal_main_font_family hbl_pal_input_font_size hbl_pal_control_border'><option selected=selected>Select a Business Type</option><option>Sales</option><option>Support</option></select></div>");
 
-    // set the custom field on change
-    $('#bizz').change(function(){
-      console.log($(this).val());
-      olark('api.visitor.updateCustomFields', {salesForceBusiness: $(this).val()});
 
-      if($(this).val() != "Select a Business Type"){
-         hasSetField = true;
-      }
+      // set the custom field on change
+      $('#' + id).change(function(){
+        console.log($(this).val());
+        olark('api.visitor.updateCustomFields', {salesForceBusiness: $(this).val()});
 
-    });
+        if($(this).val() != "Select a Business Type"){
+           hasSetField = true;
+        }
 
+      });
+
+      // handle offline message
+      (function(){
+        var oldHandler = $(buttonName)[0].onclick;
+        $(buttonName)[0].onclick = function(){};
+
+        $(buttonName).click(function(e){
+          console.log('business type:' + $('#' + id).val())
+          olark('api.chat.sendNotificationToOperator', {body: 'business type:' + $('#' + id).val()})
+
+          if(hasSetField){
+            oldHandler(e);
+          }else{
+            alert("error")
+            return false;
+          }
+
+        });
+      })();
+    };
+
+
+    addSelectBox("#habla_name_input", '#habla_offline_submit_input', 'biz1');
+    addSelectBox("#habla_pre_chat_name_input", '#habla_pre_chat_submit_input', 'biz2');
 
 
   }
